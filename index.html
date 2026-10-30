@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fff7df">
+<title>JomPandai — Belajar Sambil Bermain</title>
+<style>
+:root{--ink:#25324a;--blue:#dff2ff;--yellow:#fff0b8;--green:#e3f7e8;--pink:#ffe3eb;--paper:#fffdf7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:25px 16px 18px;text-align:center;background:linear-gradient(135deg,#fff0b8,#e5f5ff)}
+h1{margin:0;font-size:clamp(2rem,8vw,3rem);letter-spacing:-1px}
+header p{margin:8px 0 0;font-size:1rem}
+main{max-width:850px;margin:auto;padding:18px 14px 35px}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0 22px}
+button{font:inherit;cursor:pointer;border:2px solid transparent;border-radius:16px;padding:12px 15px;font-weight:750;color:var(--ink);min-height:46px}
+button:focus-visible{outline:3px solid #3157a4;outline-offset:3px}
+.lang{background:white;border-color:#d7e0ed}
+.lang[aria-pressed="true"]{background:#25324a;color:white}
+h2{text-align:center;font-size:1.4rem;margin:12px 0 16px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{border:2px solid #edf0f5;border-radius:22px;padding:16px 8px 13px;text-align:center;min-height:150px;background:white;box-shadow:0 3px 0 #edf0f5}
+.card:nth-child(3n+1){background:var(--yellow)}.card:nth-child(3n+2){background:var(--blue)}.card:nth-child(3n){background:var(--green)}
+.emoji{display:block;font-size:clamp(3rem,14vw,5rem);line-height:1.2;margin:0 0 7px}
+.word{display:block;font-size:1.12rem;font-weight:800}
+.hint{display:block;font-size:.9rem;margin-top:3px;opacity:.8}
+.speaker{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 12px;background:#fff;border:1px solid #d9e0e8;border-radius:999px;font-size:.9rem}
+#status{text-align:center;min-height:1.5em;margin:16px 0;color:#4a5b76}
+.note{margin:22px 0 0;padding:14px 15px;background:#f2f5fa;border-radius:16px;font-size:.9rem;line-height:1.5}
+footer{text-align:center;padding:18px;color:#667085;font-size:.82rem}
+@media(min-width:600px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}.card{min-height:190px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌈 JomPandai</h1>
+  <p>Belajar sambil bermain · Learn through play</p>
+</header>
+<main>
+  <div class="controls" role="group" aria-label="Pilih bahasa / Choose language">
+    <button class="lang" id="msBtn" aria-pressed="true">🇲🇾 Bahasa Melayu</button>
+    <button class="lang" id="enBtn" aria-pressed="false">🇬🇧 English</button>
+  </div>
+  <h2 id="sectionTitle">🍉 Kenali buah-buahan</h2>
+  <section class="cards" id="cards" aria-label="Kad gambar buah-buahan"></section>
+  <p id="status" aria-live="polite">Tekan gambar atau butang 🔊 untuk dengar sebutan.</p>
+  <aside class="note">
+    <strong>Untuk ibu bapa / For parents</strong><br>
+    Gunakan bersama anak dan ulang sebutan dengan santai. Suara bergantung pada sokongan pelayar dan tetapan suara telefon. JomPandai demo ini tidak meminta nama, gambar, lokasi atau rakaman suara anak.
+  </aside>
+</main>
+<footer>JomPandai · Demo pembelajaran awal · Tiada akaun diperlukan</footer>
+<script>
+const fruits = [
+ {emoji:"🍎", ms:"Epal", en:"Apple"},
+ {emoji:"🍌", ms:"Pisang", en:"Banana"},
+ {emoji:"🍊", ms:"Oren", en:"Orange"},
+ {emoji:"🥭", ms:"Mangga", en:"Mango"},
+ {emoji:"🍇", ms:"Anggur", en:"Grapes"},
+ {emoji:"🍉", ms:"Tembikai", en:"Watermelon"}
+];
+let language = "ms";
+const cards = document.getElementById("cards");
+const status = document.getElementById("status");
+function say(word){
+  if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+    status.textContent = "Audio automatik tidak disokong pada pelayar ini. Cuba pelayar terkini.";
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(word);
+  utterance.lang = language === "ms" ? "ms-MY" : "en-GB";
+  utterance.rate = 0.78;
+  utterance.pitch = 1.05;
+  utterance.onstart = () => { status.textContent = "Dengar: " + word; };
+  utterance.onerror = () => { status.textContent = "Suara tidak tersedia pada peranti ini. Cuba bahasa lain atau pelayar lain."; };
+  window.speechSynthesis.speak(utterance);
+}
+function render(){
+  document.getElementById("msBtn").setAttribute("aria-pressed", String(language === "ms"));
+  document.getElementById("enBtn").setAttribute("aria-pressed", String(language === "en"));
+  document.getElementById("sectionTitle").textContent = language === "ms" ? "🍉 Kenali buah-buahan" : "🍉 Learn about fruits";
+  status.textContent = language === "ms" ? "Tekan gambar atau butang 🔊 untuk dengar sebutan." : "Tap a picture or 🔊 to hear the word.";
+  cards.replaceChildren();
+  fruits.forEach(fruit => {
+    const word = fruit[language];
+    const card = document.createElement("button");
+    card.className = "card";
+    card.type = "button";
+    card.setAttribute("aria-label", "Dengar sebutan " + word);
+    const emoji = document.createElement("span"); emoji.className = "emoji"; emoji.textContent = fruit.emoji;
+    const label = document.createElement("span"); label.className = "word"; label.textContent = word;
+    const hint = document.createElement("span"); hint.className = "hint"; hint.textContent = language === "ms" ? "Tekan untuk dengar" : "Tap to listen";
+    const speaker = document.createElement("span"); speaker.className = "speaker"; speaker.textContent = "🔊 " + (language === "ms" ? "Dengar" : "Listen");
+    card.append(emoji,label,hint,speaker);
+    card.addEventListener("click", () => say(word));
+    cards.append(card);
+  });
+}
+document.getElementById("msBtn").addEventListener("click", () => {language="ms";render();});
+document.getElementById("enBtn").addEventListener("click", () => {language="en";render();});
+render();
+</script>
+</body>
+</html>
